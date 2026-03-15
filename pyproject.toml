@@ -1,0 +1,24 @@
+[project]
+name = "chat-server"
+version = "0.1.0"
+description = "FastAPI + LangGraph + Ollama + PostgreSQL 기반 채팅 서버 API"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.135.1",
+    "langchain-ollama>=0.3.0",
+    "langgraph>=0.3.0",
+    "langgraph-checkpoint-postgres>=2.0.0",
+    "psycopg[binary]>=3.2.0",
+    "pydantic-settings>=2.0.0",
+    "uvicorn>=0.34.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.25.0",
+]
