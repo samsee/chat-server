@@ -21,11 +21,11 @@ _store = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _graph, _store
-    checkpointer = PostgresSaver.from_conn_string(settings.database_url)
-    checkpointer.setup()
-    _store = InMemoryStore()
-    _graph = create_graph(checkpointer=checkpointer, store=_store)
-    yield
+    with PostgresSaver.from_conn_string(settings.database_url) as checkpointer:
+        checkpointer.setup()
+        _store = InMemoryStore()
+        _graph = create_graph(checkpointer=checkpointer, store=_store)
+        yield
 
 app = FastAPI(title="Chat Server", lifespan=lifespan)
 
