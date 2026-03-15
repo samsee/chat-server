@@ -23,3 +23,13 @@ class HistoryResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     detail: str
+
+
+class MemoryItem(BaseModel):
+    key: str
+    value: dict
+
+
+class MemoriesResponse(BaseModel):
+    user_id: str
+    memories: list[MemoryItem]

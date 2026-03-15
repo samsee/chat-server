@@ -4,29 +4,35 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, HTTPException
 from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.store.memory import InMemoryStore
 from langchain_core.messages import HumanMessage
 
 from app.config import settings
 from app.schema import (
     ChatRequest, ChatResponse, HistoryResponse,
-    MessageItem, ErrorResponse,
+    MessageItem, ErrorResponse, MemoryItem, MemoriesResponse,
 )
 from app.graph import create_graph
 
 _graph = None
+_store = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _graph
+    global _graph, _store
     checkpointer = PostgresSaver.from_conn_string(settings.database_url)
     checkpointer.setup()
-    _graph = create_graph(checkpointer=checkpointer)
+    _store = InMemoryStore()
+    _graph = create_graph(checkpointer=checkpointer, store=_store)
     yield
 
 app = FastAPI(title="Chat Server", lifespan=lifespan)
 
 def get_graph():
     return _graph
+
+def get_store():
+    return _store
 
 @app.get("/health")
 def health():
@@ -35,7 +41,7 @@ def health():
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, graph=Depends(get_graph)):
     thread_id = req.thread_id or str(uuid.uuid4())
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {"configurable": {"thread_id": thread_id, "user_id": req.user_id}}
 
     result = graph.invoke(
         {"messages": [HumanMessage(content=req.message)]},
@@ -73,3 +79,19 @@ def history(thread_id: str, graph=Depends(get_graph)):
         messages.append(MessageItem(role=role, content=msg.content, index=i))
 
     return HistoryResponse(thread_id=thread_id, messages=messages)
+
+@app.get("/memories/{user_id}", response_model=MemoriesResponse)
+def get_memories(user_id: str, store=Depends(get_store)):
+    items = store.search(("memories", user_id))
+    memories = [
+        MemoryItem(key=item.key, value=item.value)
+        for item in items
+    ]
+    return MemoriesResponse(user_id=user_id, memories=memories)
+
+@app.delete("/memories/{user_id}")
+def delete_memories(user_id: str, store=Depends(get_store)):
+    items = store.search(("memories", user_id))
+    for item in items:
+        store.delete(("memories", user_id), item.key)
+    return {"status": "ok", "deleted": len(items)}
