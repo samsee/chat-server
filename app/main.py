@@ -11,6 +11,7 @@ from app.config import settings
 from app.schema import (
     ChatRequest, ChatResponse, HistoryResponse,
     MessageItem, ErrorResponse, MemoryItem, MemoriesResponse,
+    ForkRequest, ForkResponse,
 )
 from app.graph import create_graph
 
@@ -95,3 +96,42 @@ def delete_memories(user_id: str, store=Depends(get_store)):
     for item in items:
         store.delete(("memories", user_id), item.key)
     return {"status": "ok", "deleted": len(items)}
+
+@app.post(
+    "/fork",
+    response_model=ForkResponse,
+    responses={404: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+)
+def fork_conversation(req: ForkRequest, graph=Depends(get_graph)):
+    source_config = {"configurable": {"thread_id": req.source_thread_id}}
+    state = graph.get_state(source_config)
+
+    if not state.values:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "not_found", "detail": f"Thread '{req.source_thread_id}' not found"},
+        )
+
+    messages = state.values["messages"]
+
+    if req.message_index < 0 or req.message_index >= len(messages):
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_index", "detail": f"message_index must be 0-{len(messages)-1}"},
+        )
+
+    # 새 thread에 해당 인덱스까지의 메시지를 주입
+    new_thread_id = str(uuid.uuid4())
+    new_config = {"configurable": {"thread_id": new_thread_id}}
+    truncated_messages = messages[:req.message_index + 1]
+
+    graph.update_state(
+        new_config,
+        {"messages": truncated_messages},
+    )
+
+    return ForkResponse(
+        new_thread_id=new_thread_id,
+        forked_from=req.source_thread_id,
+        message_index=req.message_index,
+    )

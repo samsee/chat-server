@@ -99,3 +99,52 @@ async def test_delete_memories():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.delete("/memories/user1")
         assert resp.status_code == 200
+
+
+async def test_fork_conversation():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 원본 대화 생성
+        await client.post("/chat", json={
+            "user_id": "user1", "thread_id": "fork-src", "message": "첫 번째"
+        })
+        await client.post("/chat", json={
+            "user_id": "user1", "thread_id": "fork-src", "message": "두 번째"
+        })
+
+        # message_index=1에서 분기 (첫 번째 AI 응답까지)
+        resp = await client.post("/fork", json={
+            "source_thread_id": "fork-src",
+            "message_index": 1
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["forked_from"] == "fork-src"
+        assert data["message_index"] == 1
+        new_thread_id = data["new_thread_id"]
+
+        # 분기된 대화의 히스토리 확인
+        hist = await client.get(f"/history/{new_thread_id}")
+        assert hist.status_code == 200
+        assert len(hist.json()["messages"]) == 2  # index 0, 1만 복사됨
+
+async def test_fork_invalid_thread():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/fork", json={
+            "source_thread_id": "nonexistent",
+            "message_index": 0
+        })
+        assert resp.status_code == 404
+
+async def test_fork_invalid_index():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post("/chat", json={
+            "user_id": "user1", "thread_id": "fork-idx", "message": "hello"
+        })
+        resp = await client.post("/fork", json={
+            "source_thread_id": "fork-idx",
+            "message_index": 99
+        })
+        assert resp.status_code == 400

@@ -33,3 +33,13 @@ class MemoryItem(BaseModel):
 class MemoriesResponse(BaseModel):
     user_id: str
     memories: list[MemoryItem]
+
+
+class ForkRequest(BaseModel):
+    source_thread_id: str
+    message_index: int
+
+class ForkResponse(BaseModel):
+    new_thread_id: str
+    forked_from: str
+    message_index: int
