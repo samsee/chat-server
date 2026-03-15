@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(uv run:*)",
+      "Bash(git -C /c/Workspace/chat-server add app/config.py tests/test_config.py && git -C /c/Workspace/chat-server commit -m \"feat: add application settings with env var support\")",
+      "Bash(git -C /c/Workspace/chat-server add app/schema.py tests/test_schema.py && git -C /c/Workspace/chat-server commit -m \"feat: add Pydantic request/response schemas\")",
+      "Bash(git -C /c/Workspace/chat-server add app/main.py tests/test_api.py && git -C /c/Workspace/chat-server commit -m \"feat: add FastAPI endpoints for chat and history\")",
+      "Bash(git -C /c/Workspace/chat-server add README.md && git -C /c/Workspace/chat-server commit -m \"docs: add README with setup instructions\")",
+      "Bash(git -C /c/Workspace/chat-server log --oneline 2>&1)",
+      "Bash(git add:*)"
+    ]
+  }
+}
