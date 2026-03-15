@@ -27,8 +27,8 @@ ollama serve
 ### 3. 서버 실행
 
 ```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv sync
+uv run uvicorn app.main:app --reload
 ```
 
 ## API

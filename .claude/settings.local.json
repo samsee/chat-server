@@ -8,7 +8,18 @@
       "Bash(git -C /c/Workspace/chat-server add app/main.py tests/test_api.py && git -C /c/Workspace/chat-server commit -m \"feat: add FastAPI endpoints for chat and history\")",
       "Bash(git -C /c/Workspace/chat-server add README.md && git -C /c/Workspace/chat-server commit -m \"docs: add README with setup instructions\")",
       "Bash(git -C /c/Workspace/chat-server log --oneline 2>&1)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git remote:*)",
+      "Bash(docker ps:*)",
+      "Bash(curl -s http://localhost:11434/api/tags 2>/dev/null | head -5 || echo \"Ollama not running\")",
+      "Bash(docker run:*)",
+      "Bash(sleep 5 && curl -s http://localhost:8000/health)",
+      "Bash(curl -s -X POST http://localhost:8000/chat -H \"Content-Type: application/json\" -d '{\"user_id\": \"user1\", \"message\": \"안녕하세요! 제 이름은 철수입니다.\"}' | python -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8000/chat -H \"Content-Type: application/json\" -d \"{\\\\\"user_id\\\\\": \\\\\"user1\\\\\", \\\\\"message\\\\\": \\\\\"안녕하세요! 제 이름은 철수입니다.\\\\\"}\")",
+      "Bash(curl -s -X POST http://localhost:8000/chat -H \"Content-Type: application/json\" -d \"{\\\\\"user_id\\\\\": \\\\\"user1\\\\\", \\\\\"thread_id\\\\\": \\\\\"2e73c261-7756-4235-94e5-cbeb27f4ad4d\\\\\", \\\\\"message\\\\\": \\\\\"제 이름이 뭐라고 했죠?\\\\\"}\")",
+      "Bash(curl -s -X POST http://localhost:8000/chat -H \"Content-Type: application/json\" -d \"{\\\\\"user_id\\\\\": \\\\\"user2\\\\\", \\\\\"message\\\\\": \\\\\"hello, what is 1+1?\\\\\"}\")",
+      "Bash(curl -s -X POST http://localhost:8000/chat -H \"Content-Type: application/json\" -d \"{\\\\\"user_id\\\\\": \\\\\"user2\\\\\", \\\\\"thread_id\\\\\": \\\\\"779aa865-8d2d-4a9b-86a1-99e653e348d0\\\\\", \\\\\"message\\\\\": \\\\\"what did I just ask you?\\\\\"}\")",
+      "Bash(curl -s http://localhost:8000/history/779aa865-8d2d-4a9b-86a1-99e653e348d0)"
     ]
   }
 }
